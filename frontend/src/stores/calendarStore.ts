@@ -106,12 +106,16 @@ export const useCalendarStore = defineStore('calendar', () => {
     }
   }
 
-  function reset() {
-    events.value = [];
-    error.value = null;
+  function resetFilters() {
     filter.value = 'all';
     dateRange.value = { from: null, to: null };
     showMilestones.value = true;
+  }
+
+  function reset() {
+    events.value = [];
+    error.value = null;
+    resetFilters();
   }
 
   return {
@@ -119,6 +123,6 @@ export const useCalendarStore = defineStore('calendar', () => {
     filter, dateRange, showMilestones,
     milestones, timedEvents,
     allEventsPerDay, eventsPerDay, filteredEventsPerDay, maxEventsPerDay,
-    setDateRange, fetchEvents, reset,
+    setDateRange, fetchEvents, reset, resetFilters,
   };
 });

@@ -9,10 +9,10 @@
     </button>
     <button
       v-if="store.events.length"
-      @click="store.reset()"
+      @click="store.resetFilters(); store.fetchEvents()"
       class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
     >
-      Zurücksetzen
+      Filter zurücksetzen
     </button>
     <p v-if="store.error" class="text-red-400 text-sm">{{ store.error }}</p>
   </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import CalendarInput from './components/CalendarInput.vue';
 import EventChart from './components/EventChart.vue';
 import StatsBlock from './components/StatsBlock.vue';
@@ -37,6 +37,16 @@ function applyQuickRange(days: number) {
   const from = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
   store.setDateRange(from, today);
 }
+
+const activeQuickDays = computed(() => {
+  const { from, to } = store.dateRange;
+  if (!from || !to) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  if (to !== today) return null;
+  const diffMs = new Date(today).getTime() - new Date(from).getTime();
+  const days = Math.round(diffMs / 86_400_000);
+  return quickRanges.find(r => r.days === days)?.days ?? null;
+});
 </script>
 
 <template>
@@ -104,7 +114,12 @@ function applyQuickRange(days: number) {
             v-for="r in quickRanges"
             :key="r.days"
             @click="applyQuickRange(r.days)"
-            class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
+            :class="[
+              'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+              activeQuickDays === r.days
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
+            ]"
           >
             {{ r.label }}
           </button>

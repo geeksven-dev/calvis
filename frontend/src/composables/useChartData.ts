@@ -50,7 +50,11 @@ function milestoneAnnotations(
   return annotations;
 }
 
-function birthdayAnnotations(labels: string[]): Record<string, AnnotationOptions> {
+function birthdayAnnotations(
+  store: ReturnType<typeof useCalendarStore>,
+  labels: string[],
+): Record<string, AnnotationOptions> {
+  if (!store.showMilestones) return {};
   const labelSet = new Set(labels);
   const annotations: Record<string, AnnotationOptions> = {};
   const maxYear = new Date().getFullYear() + 1;
@@ -69,7 +73,8 @@ function birthdayAnnotations(labels: string[]): Record<string, AnnotationOptions
       label: {
         display: true,
         content: `🎂 ${age} Jahr${age === 1 ? '' : 'e'}`,
-        position: 0.04 as unknown as 'start',
+        position: 'end',
+        rotation: 90,
         backgroundColor: 'rgba(30, 27, 20, 0.88)',
         color: 'rgba(251, 191, 36, 1)',
         font: { size: 11, weight: 'bold' as const },
@@ -181,7 +186,7 @@ export function useChartData() {
       },
       annotation: {
         annotations: {
-          ...birthdayAnnotations(store.eventsPerDay.map((d) => d.date)),
+          ...birthdayAnnotations(store, store.eventsPerDay.map((d) => d.date)),
           ...milestoneAnnotations(store, store.eventsPerDay.map((d) => d.date)),
         },
       },

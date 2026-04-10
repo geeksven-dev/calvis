@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+backend/dist/
+frontend/dist/
+
+# Environment
+.env
+backend/.env
+
+# Editor
+.DS_Store
+.vscode/
+*.local

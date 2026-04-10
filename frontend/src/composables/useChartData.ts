@@ -202,6 +202,15 @@ export function useChartData() {
       x: {
         stacked: store.filter === 'all',
         title: { display: true, text: 'Datum' },
+        ticks: {
+          maxTicksLimit: 14,
+          callback(this: { getLabelForValue(v: number): string }, val: number | string): string {
+            const label = typeof val === 'string' ? val : this.getLabelForValue(val);
+            if (!label) return '';
+            const [y, m, d] = label.split('-');
+            return `${d}.${m}.${y}`;
+          },
+        },
       },
     },
   }));

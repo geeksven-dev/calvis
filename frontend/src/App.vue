@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import CalendarInput from './components/CalendarInput.vue';
 import EventChart from './components/EventChart.vue';
 import StatsBlock from './components/StatsBlock.vue';
@@ -10,12 +11,32 @@ import type { TimeFilter } from './stores/calendarStore';
 
 const store = useCalendarStore();
 useUrlSync();
+onMounted(() => store.fetchEvents());
 
 const filters: { value: TimeFilter; label: string; icon: string }[] = [
   { value: 'all',   label: 'Alle',     icon: '🗓️' },
   { value: 'day',   label: 'Tagsüber', icon: '☀️' },
   { value: 'night', label: 'Nachts',   icon: '🌙' },
 ];
+
+const quickRanges = [
+  { label: '2W',   days: 14 },
+  { label: '4W',   days: 28 },
+  { label: '3M',   days: 90 },
+  { label: '6M',   days: 180 },
+  { label: '1J',   days: 365 },
+];
+
+function fmtDate(iso: string) {
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function applyQuickRange(days: number) {
+  const today = new Date().toISOString().slice(0, 10);
+  const from = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+  store.setDateRange(from, today);
+}
 </script>
 
 <template>
@@ -71,7 +92,21 @@ const filters: { value: TimeFilter; label: string; icon: string }[] = [
             ]"
             :title="`${store.milestones.length} historische Ereignisse`"
           >
-            📌 Historisch
+            📌 Meilensteine
+          </button>
+        </div>
+
+        <!-- Quick range buttons -->
+        <div v-if="store.events.length" class="flex items-center gap-2 flex-wrap">
+          <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
+          <span class="text-xs text-gray-500 uppercase tracking-wider mr-1">Zeitraum</span>
+          <button
+            v-for="r in quickRanges"
+            :key="r.days"
+            @click="applyQuickRange(r.days)"
+            class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
+          >
+            {{ r.label }}
           </button>
         </div>
 
@@ -80,7 +115,7 @@ const filters: { value: TimeFilter; label: string; icon: string }[] = [
           <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
           <span class="text-xs text-gray-500 uppercase tracking-wider">Zoom</span>
           <span class="text-sm text-indigo-300 font-mono bg-gray-800 px-2 py-1 rounded">
-            {{ store.dateRange.from }} → {{ store.dateRange.to }}
+            {{ fmtDate(store.dateRange.from) }} → {{ fmtDate(store.dateRange.to!) }}
           </span>
           <button
             @click="store.setDateRange(null, null)"

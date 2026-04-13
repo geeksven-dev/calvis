@@ -4,6 +4,8 @@ import cors from 'cors';
 import path from 'path';
 import calendarRouter from './routes/calendar';
 import symptomatikRouter from './routes/symptomatik';
+import eventsRouter from './routes/events';
+import authRouter from './routes/auth';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -15,6 +17,8 @@ app.use(express.json());
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/calendar', calendarRouter);
 app.use('/api/symptomatik', symptomatikRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/auth', authRouter);
 
 // Serve built Vue frontend
 app.use(express.static(frontendDist));

@@ -4,15 +4,8 @@ import { fetchCalendarEvents } from '../services/calendarService';
 const router = Router();
 
 router.get('/', async (_req: Request, res: Response) => {
-  const url = process.env.CALENDAR_URL;
-
-  if (!url) {
-    res.status(500).json({ error: 'CALENDAR_URL ist nicht konfiguriert.' });
-    return;
-  }
-
   try {
-    const events = await fetchCalendarEvents(url);
+    const events = await fetchCalendarEvents();
     res.json({ events });
   } catch (err) {
     console.error('Fehler beim Abrufen des Kalenders:', err);

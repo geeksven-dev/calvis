@@ -58,7 +58,7 @@ export const useCalendarStore = defineStore('calendar', () => {
       const dateStr = cursor.toISOString().slice(0, 10);
       const dayEvents = map.get(dateStr) ?? [];
       result.push({ date: dateStr, count: dayEvents.length, events: dayEvents });
-      cursor.setDate(cursor.getDate() + 1);
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
     return result;
   });

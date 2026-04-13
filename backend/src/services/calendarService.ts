@@ -2,6 +2,25 @@ import https from 'https';
 import ical from 'node-ical';
 import { CalendarEvent } from '../types';
 
+const displayTimezone = process.env.TIMEZONE || 'UTC';
+
+function formatInTimezone(date: Date): { date: string; time: string } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: displayTimezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? '00';
+  return {
+    date: `${get('year')}-${get('month')}-${get('day')}`,
+    time: `${get('hour').replace('24', '00')}:${get('minute')}`,
+  };
+}
+
 function fetchText(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const agent = new https.Agent({ rejectUnauthorized: false });
@@ -39,10 +58,16 @@ export async function fetchCalendarEvents(url: string): Promise<CalendarEvent[]>
     if (isNaN(startDate.getTime())) continue;
 
     const allDay = !!(start as any).dateOnly;
-    const date = startDate.toISOString().split('T')[0];
-    const hours = allDay ? '00' : startDate.getUTCHours().toString().padStart(2, '0');
-    const minutes = allDay ? '00' : startDate.getUTCMinutes().toString().padStart(2, '0');
-    const time = `${hours}:${minutes}`;
+
+    let date: string;
+    let time: string;
+
+    if (allDay) {
+      date = startDate.toISOString().split('T')[0];
+      time = '00:00';
+    } else {
+      ({ date, time } = formatInTimezone(startDate));
+    }
 
     const title = (event.summary as string | undefined)?.trim() ?? '(Kein Titel)';
 

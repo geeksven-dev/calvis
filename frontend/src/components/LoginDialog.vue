@@ -21,6 +21,8 @@
               v-model="username"
               type="text"
               autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
               class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-indigo-500"
             />
           </div>

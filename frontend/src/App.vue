@@ -218,8 +218,8 @@ const activeQuickDays = computed(() => {
 
       <!-- Chart -->
       <div id="chart" class="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-        <p v-if="store.events.length" class="text-xs text-gray-500 mb-3 text-right">
-          💡 Bereich ziehen zum Reinzoomen
+        <p v-if="store.events.length" class="text-xl text-gray-500 mb-3 text-right">
+          💡 Zum Bereich vergrößern mit der Maus ein Fenster im Chart ziehen
         </p>
         <EventChart />
       </div>

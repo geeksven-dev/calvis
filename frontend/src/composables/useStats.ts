@@ -21,10 +21,10 @@ export function useStats() {
       for (const e of day.events) {
         const h = parseInt(e.time.slice(0, 2), 10);
         hourBuckets[h]++;
-        if (h >= 6 && h < 20) dayCount++;
+        if (h >= 7 && h < 20) dayCount++;
         else {
           nightCount++;
-          if (h < 6) earlyNight++;
+          if (h < 7) earlyNight++;
           else lateNight++;
         }
       }

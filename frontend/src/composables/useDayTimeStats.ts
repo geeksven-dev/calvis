@@ -20,7 +20,7 @@ export function useDayTimeStats() {
     for (const day of days) {
       for (const e of day.events) {
         const h = parseInt(e.time.slice(0, 2), 10);
-        if (h >= 6 && h < 20) hourCounts[h]++;
+        if (h >= 7 && h < 20) hourCounts[h]++;
       }
     }
 

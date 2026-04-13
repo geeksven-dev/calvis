@@ -17,7 +17,7 @@ export const useCalendarStore = defineStore('calendar', () => {
   function matchesFilter(time: string, f: TimeFilter): boolean {
     if (f === 'all') return true;
     const hour = parseInt(time.slice(0, 2), 10);
-    return f === 'day' ? hour >= 6 && hour < 20 : hour >= 20 || hour < 6;
+    return f === 'day' ? hour >= 7 && hour < 20 : hour >= 20 || hour < 7;
   }
 
   /** Timed events only (all-day events excluded from bar chart) */

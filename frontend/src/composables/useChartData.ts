@@ -98,8 +98,8 @@ export function useChartData() {
         labels: days.map((d) => d.date),
         datasets: [
           {
-            label: 'Nacht (0–6 Uhr)',
-            data: days.map((d) => d.events.filter((e) => hourOf(e.time) < 6).length),
+            label: 'Nacht (0–7 Uhr)',
+            data: days.map((d) => d.events.filter((e) => hourOf(e.time) < 7).length),
             backgroundColor: NIGHT_COLOR,
             borderColor: NIGHT_BORDER,
             borderWidth: 1,
@@ -107,9 +107,9 @@ export function useChartData() {
             stack: 'events',
           },
           {
-            label: 'Tagsüber (6–20 Uhr)',
+            label: 'Tagsüber (7–20 Uhr)',
             data: days.map((d) =>
-              d.events.filter((e) => hourOf(e.time) >= 6 && hourOf(e.time) < 20).length,
+              d.events.filter((e) => hourOf(e.time) >= 7 && hourOf(e.time) < 20).length,
             ),
             backgroundColor: DAY_COLOR,
             borderColor: DAY_BORDER,

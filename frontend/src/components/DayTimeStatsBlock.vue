@@ -3,7 +3,7 @@
     <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
       Tagesanalyse ☀️
       <span class="ml-2 text-gray-600 normal-case tracking-normal text-xs font-normal">
-        {{ stats.total }} Ereignisse zwischen 6–20 Uhr
+        {{ stats.total }} Ereignisse zwischen 7–20 Uhr
       </span>
     </h2>
 

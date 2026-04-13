@@ -1,18 +1,29 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import CalendarInput from './components/CalendarInput.vue';
 import EventChart from './components/EventChart.vue';
 import StatsBlock from './components/StatsBlock.vue';
 import DayTimeStatsBlock from './components/DayTimeStatsBlock.vue';
 import RoutineCorrelationBlock from './components/RoutineCorrelationBlock.vue';
+import SchubDialog from './components/SchubDialog.vue';
+import LoginDialog from './components/LoginDialog.vue';
 import SymptomatikBlock from './components/SymptomatikBlock.vue';
+import { useAuthStore } from './stores/authStore';
 import { useCalendarStore } from './stores/calendarStore';
 import { useUrlSync } from './composables/useUrlSync';
 import type { TimeFilter } from './stores/calendarStore';
 
 const store = useCalendarStore();
+const auth  = useAuthStore();
 useUrlSync();
 onMounted(() => store.fetchEvents());
+
+const dialogOpen = ref(false);
+const loginOpen  = ref(false);
+
+function onSchubSaved() {
+  store.fetchEvents();
+}
 
 const navLinks = [
   { id: 'symptomatik', icon: '🧠', label: 'Symptomatik' },
@@ -81,94 +92,128 @@ const activeQuickDays = computed(() => {
         >
           {{ link.icon }} {{ link.label }}
         </a>
+        <!-- Spacer -->
+        <div class="flex-1" />
+
+        <!-- Auth + Schub erfassen (Desktop) -->
+        <template v-if="auth.isLoggedIn">
+          <button
+            @click="dialogOpen = true"
+            class="hidden md:flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+          >
+            ⚡ Schub erfassen
+          </button>
+          <button
+            @click="auth.logout()"
+            class="flex-shrink-0 flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+            title="Abmelden"
+          >
+            🔓 Abmelden
+          </button>
+        </template>
+        <button
+          v-else
+          @click="loginOpen = true"
+          class="hidden md:flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors"
+        >
+          🔒 Anmelden
+        </button>
       </div>
     </nav>
 
-    <main class="max-w-screen-2xl mx-auto flex flex-col gap-5">
+    <main class="max-w-screen-2xl mx-auto flex flex-col gap-5 pb-24 md:pb-0">
 
       <!-- Controls Bar -->
-      <div class="bg-gray-900 rounded-2xl border border-gray-800 px-5 py-4 flex flex-wrap items-center gap-4">
-        <!-- Load / Reset -->
-        <CalendarInput />
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 px-4 py-4 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:gap-4 md:px-5">
 
-        <!-- Divider -->
-        <div v-if="store.events.length" class="hidden sm:block w-px h-8 bg-gray-700"></div>
-
-        <!-- Filter Buttons -->
-        <div v-if="store.events.length" class="flex items-center gap-2 flex-wrap">
-          <span class="text-xs text-gray-500 uppercase tracking-wider mr-1">Filter</span>
-          <button
-            v-for="f in filters"
-            :key="f.value"
-            @click="store.filter = f.value"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-              store.filter === f.value
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
-            ]"
-          >
-            {{ f.icon }} {{ f.label }}
-          </button>
+        <!-- Row 1 (mobile): Load / Reset -->
+        <div class="w-full md:w-auto">
+          <CalendarInput />
         </div>
 
-        <!-- Historical events toggle -->
-        <div v-if="store.milestones.length" class="flex items-center gap-2">
-          <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
-          <button
-            @click="store.showMilestones = !store.showMilestones"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-              store.showMilestones
-                ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700/50'
-                : 'bg-gray-800 text-gray-500 hover:bg-gray-700',
-            ]"
-            :title="`${store.milestones.length} historische Ereignisse`"
-          >
-            📌 Meilensteine
-          </button>
-        </div>
+        <!-- Separator (mobile only) -->
+        <div v-if="store.events.length" class="md:hidden w-full h-px bg-gray-800"></div>
 
-        <!-- Quick range buttons -->
-        <div v-if="store.events.length" class="flex items-center gap-2 flex-wrap">
-          <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
-          <span class="text-xs text-gray-500 uppercase tracking-wider mr-1">Zeitraum</span>
-          <button
-            v-for="r in quickRanges"
-            :key="r.days"
-            @click="applyQuickRange(r.days)"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-              activeQuickDays === r.days
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
-            ]"
-          >
-            {{ r.label }}
-          </button>
-        </div>
+        <template v-if="store.events.length">
 
-        <!-- Zoom Range Indicator + Reset -->
-        <div v-if="store.dateRange.from" class="flex items-center gap-2 flex-wrap">
-          <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
-          <span class="text-xs text-gray-500 uppercase tracking-wider">Zoom</span>
-          <span class="text-sm text-indigo-300 font-mono bg-gray-800 px-2 py-1 rounded">
-            {{ fmtDate(store.dateRange.from) }} → {{ fmtDate(store.dateRange.to!) }}
-          </span>
-          <button
-            @click="store.setDateRange(null, null)"
-            class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
-            title="Zoom zurücksetzen"
-          >
-            ✕ Zoom zurücksetzen
-          </button>
-        </div>
+          <!-- Divider (desktop only) -->
+          <div class="hidden md:block w-px h-8 bg-gray-700"></div>
 
-        <!-- Stats -->
-        <div v-if="store.events.length" class="ml-auto flex items-center gap-4 text-sm text-gray-400">
-          <span><span class="text-indigo-400 font-semibold">{{ store.events.length }}</span> Ereignisse</span>
-          <span><span class="text-indigo-400 font-semibold">{{ store.allEventsPerDay.length }}</span> Tage gesamt</span>
-        </div>
+          <!-- Row 2 (mobile): Filter + Meilensteine in einer Zeile -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Filter</span>
+            <button
+              v-for="f in filters"
+              :key="f.value"
+              @click="store.filter = f.value"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                store.filter === f.value
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
+              ]"
+            >
+              {{ f.icon }} {{ f.label }}
+            </button>
+
+            <!-- Meilensteine direkt daneben -->
+            <template v-if="store.milestones.length">
+              <div class="hidden md:block w-px h-6 bg-gray-700"></div>
+              <button
+                @click="store.showMilestones = !store.showMilestones"
+                :class="[
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  store.showMilestones
+                    ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700/50'
+                    : 'bg-gray-800 text-gray-500 hover:bg-gray-700',
+                ]"
+                :title="`${store.milestones.length} historische Ereignisse`"
+              >
+                📌 Meilensteine
+              </button>
+            </template>
+          </div>
+
+          <!-- Divider (desktop only) -->
+          <div class="hidden md:block w-px h-8 bg-gray-700"></div>
+
+          <!-- Row 3 (mobile): Zeitraum -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Zeitraum</span>
+            <button
+              v-for="r in quickRanges"
+              :key="r.days"
+              @click="applyQuickRange(r.days)"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                activeQuickDays === r.days
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700',
+              ]"
+            >
+              {{ r.label }}
+            </button>
+          </div>
+
+          <!-- Row 4 (mobile): Zoom — nur wenn aktiv -->
+          <div v-if="store.dateRange.from" class="flex items-center gap-2">
+            <span class="text-xs text-gray-500 uppercase tracking-wider">Zoom</span>
+            <button
+              @click="store.setDateRange(null, null)"
+              class="flex items-center gap-1.5 text-sm text-indigo-300 font-mono bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
+            >
+              {{ fmtDate(store.dateRange.from) }} → {{ fmtDate(store.dateRange.to!) }}
+              <span class="text-gray-500 hover:text-gray-300 text-xs ml-1">✕</span>
+            </button>
+          </div>
+
+          <!-- Row 5 (mobile): Stats -->
+          <div class="flex items-center gap-4 text-sm text-gray-400 md:ml-auto">
+            <span><span class="text-indigo-400 font-semibold">{{ store.events.length }}</span> Ereignisse</span>
+            <span><span class="text-indigo-400 font-semibold">{{ store.allEventsPerDay.length }}</span> Tage gesamt</span>
+          </div>
+
+        </template>
       </div>
 
       <!-- Chart -->
@@ -192,5 +237,27 @@ const activeQuickDays = computed(() => {
       <SymptomatikBlock id="symptomatik" />
 
     </main>
+  </div>
+
+  <!-- Dialoge -->
+  <SchubDialog :open="dialogOpen" @close="dialogOpen = false" @saved="onSchubSaved" />
+  <LoginDialog :open="loginOpen"  @close="loginOpen = false" />
+
+  <!-- Mobiler Footer-Button (nur auf kleinen Screens) -->
+  <div class="md:hidden fixed bottom-0 inset-x-0 z-40 p-4 bg-gray-950/90 backdrop-blur border-t border-gray-800">
+    <button
+      v-if="auth.isLoggedIn"
+      @click="dialogOpen = true"
+      class="w-full py-3 rounded-xl text-base font-semibold bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white transition-colors shadow-lg"
+    >
+      ⚡ Schub erfassen
+    </button>
+    <button
+      v-else
+      @click="loginOpen = true"
+      class="w-full py-3 rounded-xl text-base font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors shadow-lg"
+    >
+      🔒 Anmelden
+    </button>
   </div>
 </template>

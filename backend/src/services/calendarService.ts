@@ -1,8 +1,7 @@
-import https from 'https';
-import ical from 'node-ical';
+import { google } from 'googleapis';
 import { CalendarEvent } from '../types';
 
-const displayTimezone = process.env.TIMEZONE || 'UTC';
+const displayTimezone = process.env.TIMEZONE || 'Europe/Vienna';
 
 function formatInTimezone(date: Date): { date: string; time: string } {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -21,58 +20,51 @@ function formatInTimezone(date: Date): { date: string; time: string } {
   };
 }
 
-function fetchText(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const agent = new https.Agent({ rejectUnauthorized: false });
-    https.get(url, { agent }, (res) => {
-      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        fetchText(res.headers.location).then(resolve).catch(reject);
-        return;
-      }
-      if (!res.statusCode || res.statusCode >= 400) {
-        reject(new Error(`HTTP ${res.statusCode}`));
-        return;
-      }
-      const chunks: Buffer[] = [];
-      res.on('data', (chunk: Buffer) => chunks.push(chunk));
-      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-      res.on('error', reject);
-    }).on('error', reject);
+function getCalendarAuth() {
+  const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!keyJson) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY ist nicht konfiguriert.');
+  const key = JSON.parse(keyJson);
+  return new google.auth.GoogleAuth({
+    credentials: key,
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
   });
 }
 
-export async function fetchCalendarEvents(url: string): Promise<CalendarEvent[]> {
-  const text = await fetchText(url);
-  const rawEvents = ical.parseICS(text);
+export async function fetchCalendarEvents(): Promise<CalendarEvent[]> {
+  const calendarId = process.env.GOOGLE_CALENDAR_ID;
+  if (!calendarId) throw new Error('GOOGLE_CALENDAR_ID ist nicht konfiguriert.');
+
+  const auth = getCalendarAuth();
+  const calendar = google.calendar({ version: 'v3', auth });
+
   const events: CalendarEvent[] = [];
+  let pageToken: string | undefined;
 
-  for (const key in rawEvents) {
-    const event = rawEvents[key];
+  do {
+    const res = await calendar.events.list({
+      calendarId,
+      maxResults: 2500,
+      singleEvents: true,
+      orderBy: 'startTime',
+      pageToken,
+    });
 
-    if (event.type !== 'VEVENT') continue;
+    for (const item of res.data.items ?? []) {
+      const summary = item.summary?.trim() ?? '(Kein Titel)';
+      const startRaw = item.start;
+      if (!startRaw) continue;
 
-    const start = event.start;
-    if (!start) continue;
-
-    const startDate = start instanceof Date ? start : new Date(start);
-    if (isNaN(startDate.getTime())) continue;
-
-    const allDay = !!(start as any).dateOnly;
-
-    let date: string;
-    let time: string;
-
-    if (allDay) {
-      date = startDate.toISOString().split('T')[0];
-      time = '00:00';
-    } else {
-      ({ date, time } = formatInTimezone(startDate));
+      if (startRaw.date && !startRaw.dateTime) {
+        // All-day event
+        events.push({ title: summary, date: startRaw.date, time: '00:00', allDay: true });
+      } else if (startRaw.dateTime) {
+        const { date, time } = formatInTimezone(new Date(startRaw.dateTime));
+        events.push({ title: summary, date, time, allDay: false });
+      }
     }
 
-    const title = (event.summary as string | undefined)?.trim() ?? '(Kein Titel)';
-
-    events.push({ title, date, time, allDay });
-  }
+    pageToken = res.data.nextPageToken ?? undefined;
+  } while (pageToken);
 
   return events.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 }

@@ -5,6 +5,7 @@ import EventChart from './components/EventChart.vue';
 import StatsBlock from './components/StatsBlock.vue';
 import DayTimeStatsBlock from './components/DayTimeStatsBlock.vue';
 import RoutineCorrelationBlock from './components/RoutineCorrelationBlock.vue';
+import SymptomatikBlock from './components/SymptomatikBlock.vue';
 import { useCalendarStore } from './stores/calendarStore';
 import { useUrlSync } from './composables/useUrlSync';
 import type { TimeFilter } from './stores/calendarStore';
@@ -164,6 +165,9 @@ const activeQuickDays = computed(() => {
 
       <!-- Routine correlation -->
       <RoutineCorrelationBlock v-if="store.events.length" />
+
+      <!-- Symptomatik -->
+      <SymptomatikBlock />
 
     </main>
   </div>

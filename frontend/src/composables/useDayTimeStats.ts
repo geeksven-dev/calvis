@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import { useCalendarStore } from '../stores/calendarStore';
 
 export const TIME_BLOCKS = [
-  { label: 'Morgen',     icon: '🌅', from: 6,  to: 10 },
+  { label: 'Morgen',     icon: '🌅', from: 7,  to: 10 },
   { label: 'Vormittag',  icon: '🌤️', from: 10, to: 12 },
   { label: 'Mittag',     icon: '☀️',  from: 12, to: 14 },
   { label: 'Nachmittag', icon: '🌆', from: 14, to: 18 },
@@ -24,13 +24,13 @@ export function useDayTimeStats() {
       }
     }
 
-    const total = hourCounts.slice(6, 20).reduce((s, c) => s + c, 0);
+    const total = hourCounts.slice(7, 20).reduce((s, c) => s + c, 0);
     if (total === 0) return null;
 
-    const maxCount = Math.max(...hourCounts.slice(6, 20));
+    const maxCount = Math.max(...hourCounts.slice(7, 20));
 
-    const hours = Array.from({ length: 14 }, (_, i) => {
-      const hour = 6 + i;
+    const hours = Array.from({ length: 13 }, (_, i) => {
+      const hour = 7 + i;
       const count = hourCounts[hour];
       return {
         hour,

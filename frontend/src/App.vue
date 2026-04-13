@@ -14,6 +14,14 @@ const store = useCalendarStore();
 useUrlSync();
 onMounted(() => store.fetchEvents());
 
+const navLinks = [
+  { id: 'symptomatik', icon: '🧠', label: 'Symptomatik' },
+  { id: 'chart',       icon: '📈', label: 'Verlauf' },
+  { id: 'stats',       icon: '📊', label: 'Statistiken' },
+  { id: 'tagesanalyse',icon: '☀️',  label: 'Tagesanalyse' },
+  { id: 'routine',     icon: '🔄', label: 'Routinen' },
+];
+
 const filters: { value: TimeFilter; label: string; icon: string }[] = [
   { value: 'all',   label: 'Alle',     icon: '🗓️' },
   { value: 'day',   label: 'Tagsüber', icon: '☀️' },
@@ -61,6 +69,20 @@ const activeQuickDays = computed(() => {
         Tägliche Schübe im Überblick — visualisiert aus dem Kalender
       </p>
     </header>
+
+    <!-- Nav -->
+    <nav class="sticky top-0 z-50 bg-gray-950/90 backdrop-blur border-b border-gray-800 mb-6 -mx-4 md:-mx-8 px-4 md:px-8">
+      <div class="max-w-screen-2xl mx-auto flex items-center gap-1 overflow-x-auto py-2 scrollbar-none">
+        <a
+          v-for="link in navLinks"
+          :key="link.id"
+          :href="`#${link.id}`"
+          class="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
+        >
+          {{ link.icon }} {{ link.label }}
+        </a>
+      </div>
+    </nav>
 
     <main class="max-w-screen-2xl mx-auto flex flex-col gap-5">
 
@@ -150,7 +172,7 @@ const activeQuickDays = computed(() => {
       </div>
 
       <!-- Chart -->
-      <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+      <div id="chart" class="bg-gray-900 rounded-2xl border border-gray-800 p-5">
         <p v-if="store.events.length" class="text-xs text-gray-500 mb-3 text-right">
           💡 Bereich ziehen zum Reinzoomen
         </p>
@@ -158,16 +180,16 @@ const activeQuickDays = computed(() => {
       </div>
 
       <!-- Stats -->
-      <StatsBlock v-if="store.events.length" />
+      <StatsBlock id="stats" v-if="store.events.length" />
 
       <!-- Daytime breakdown -->
-      <DayTimeStatsBlock v-if="store.events.length" />
+      <DayTimeStatsBlock id="tagesanalyse" v-if="store.events.length" />
 
       <!-- Routine correlation -->
-      <RoutineCorrelationBlock v-if="store.events.length" />
+      <RoutineCorrelationBlock id="routine" v-if="store.events.length" />
 
       <!-- Symptomatik -->
-      <SymptomatikBlock />
+      <SymptomatikBlock id="symptomatik" />
 
     </main>
   </div>

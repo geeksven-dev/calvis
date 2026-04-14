@@ -6,6 +6,7 @@ import calendarRouter from './routes/calendar';
 import symptomatikRouter from './routes/symptomatik';
 import eventsRouter from './routes/events';
 import authRouter from './routes/auth';
+import videosRouter from './routes/videos';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -19,6 +20,7 @@ app.use('/api/calendar', calendarRouter);
 app.use('/api/symptomatik', symptomatikRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/videos', videosRouter);
 
 // Serve built Vue frontend
 app.use(express.static(frontendDist));

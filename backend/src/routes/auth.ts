@@ -3,25 +3,37 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
+interface UserEntry {
+  username: string;
+  password: string;
+  role: 'admin' | 'doctor';
+}
+
+function getUsers(): UserEntry[] {
+  const raw = process.env.USERS;
+  if (!raw) return [];
+  try { return JSON.parse(raw) as UserEntry[]; }
+  catch { return []; }
+}
+
 router.post('/login', (req: Request, res: Response) => {
   const { username, password } = req.body as { username?: string; password?: string };
+  const secret = process.env.JWT_SECRET ?? 'fallback-secret';
 
-  const validUser = process.env.ADMIN_USER;
-  const validPass = process.env.ADMIN_PASSWORD;
-  const secret    = process.env.JWT_SECRET ?? 'fallback-secret';
-
-  if (!validUser || !validPass) {
-    res.status(500).json({ error: 'Auth nicht konfiguriert.' });
+  const users = getUsers();
+  if (!users.length) {
+    res.status(500).json({ error: 'USERS nicht konfiguriert.' });
     return;
   }
 
-  if (username !== validUser || password !== validPass) {
+  const user = users.find(u => u.username === username && u.password === password);
+  if (!user) {
     res.status(401).json({ error: 'Ungültige Anmeldedaten.' });
     return;
   }
 
-  const token = jwt.sign({ username }, secret, { expiresIn: '30d' });
-  res.json({ token });
+  const token = jwt.sign({ username: user.username, role: user.role }, secret, { expiresIn: '30d' });
+  res.json({ token, role: user.role });
 });
 
 export default router;

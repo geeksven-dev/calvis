@@ -5,6 +5,7 @@ import EventChart from './components/EventChart.vue';
 import StatsBlock from './components/StatsBlock.vue';
 import DayTimeStatsBlock from './components/DayTimeStatsBlock.vue';
 import RoutineCorrelationBlock from './components/RoutineCorrelationBlock.vue';
+import VideosBlock from './components/VideosBlock.vue';
 import SchubDialog from './components/SchubDialog.vue';
 import LoginDialog from './components/LoginDialog.vue';
 import SymptomatikBlock from './components/SymptomatikBlock.vue';
@@ -25,13 +26,14 @@ function onSchubSaved() {
   store.fetchEvents();
 }
 
-const navLinks = [
+const navLinks = computed(() => [
   { id: 'symptomatik', icon: '🧠', label: 'Symptomatik' },
   { id: 'chart',       icon: '📈', label: 'Verlauf' },
   { id: 'stats',       icon: '📊', label: 'Statistiken' },
   { id: 'tagesanalyse',icon: '☀️',  label: 'Tagesanalyse' },
   { id: 'routine',     icon: '🔄', label: 'Routinen' },
-];
+  ...(auth.isLoggedIn ? [{ id: 'videos', icon: '🎥', label: 'Aufnahmen' }] : []),
+]);
 
 const filters: { value: TimeFilter; label: string; icon: string }[] = [
   { value: 'all',   label: 'Alle',     icon: '🗓️' },
@@ -98,6 +100,7 @@ const activeQuickDays = computed(() => {
         <!-- Auth + Schub erfassen (Desktop) -->
         <template v-if="auth.isLoggedIn">
           <button
+            v-if="auth.isAdmin"
             @click="dialogOpen = true"
             class="hidden md:flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
           >
@@ -241,6 +244,9 @@ const activeQuickDays = computed(() => {
       <!-- Symptomatik -->
       <SymptomatikBlock id="symptomatik" />
 
+      <!-- Videos (nur eingeloggt) -->
+      <VideosBlock v-if="auth.isLoggedIn" id="videos" />
+
     </main>
   </div>
 
@@ -251,14 +257,14 @@ const activeQuickDays = computed(() => {
   <!-- Mobiler Footer-Button (nur auf kleinen Screens) -->
   <div class="md:hidden fixed bottom-0 inset-x-0 z-40 p-4 bg-gray-950/90 backdrop-blur border-t border-gray-800">
     <button
-      v-if="auth.isLoggedIn"
+      v-if="auth.isAdmin"
       @click="dialogOpen = true"
       class="w-full py-3 rounded-xl text-base font-semibold bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white transition-colors shadow-lg"
     >
       ⚡ Schub erfassen
     </button>
     <button
-      v-else
+      v-else-if="!auth.isLoggedIn"
       @click="loginOpen = true"
       class="w-full py-3 rounded-xl text-base font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors shadow-lg"
     >

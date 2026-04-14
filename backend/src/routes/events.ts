@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { google } from 'googleapis';
-import { requireAuth } from '../middleware/requireAuth';
+import { requireRole } from '../middleware/requireAuth';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ function getCalendarClient() {
   return { calendar, calendarId };
 }
 
-router.post('/', requireAuth, async (req: Request, res: Response) => {
+router.post('/', requireRole('admin'), async (req: Request, res: Response) => {
   const { title, datetime } = req.body as { title?: string; datetime?: string };
 
   if (!title?.trim()) {

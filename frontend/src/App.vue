@@ -218,9 +218,14 @@ const activeQuickDays = computed(() => {
 
       <!-- Chart -->
       <div id="chart" class="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-        <p v-if="store.events.length" class="text-xl text-gray-500 mb-3 text-right">
-          💡 Zum Bereich vergrößern mit der Maus ein Fenster im Chart ziehen
-        </p>
+        <div v-if="store.events.length" class="flex flex-col items-end gap-1 mb-3">
+          <p class="hidden md:block text-xs text-gray-500">
+            💡 Zum Bereich vergrößern mit der Maus ein Fenster im Chart ziehen
+          </p>
+          <p class="md:hidden text-xs text-gray-500">
+            💡 Zeitraum über die Schnellfilter (2W, 4W …) oben eingrenzen
+          </p>
+        </div>
         <EventChart />
       </div>
 

@@ -150,16 +150,40 @@ export function useChartData() {
   const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
     plugins: {
       legend: { position: 'top' as const },
       title: { display: true, text: 'Kalender-Ereignisse', font: { size: 18 } },
       tooltip: {
         callbacks: {
+          label: (item: TooltipItem<'bar'>) => {
+            const source = store.filter === 'all' ? store.eventsPerDay : store.filteredEventsPerDay;
+            if ((source[item.dataIndex]?.count ?? 0) === 0) return '';
+            return `${item.dataset.label}: ${item.formattedValue}`;
+          },
           afterBody: (items: TooltipItem<'bar'>[]) => {
             const index = items[0]?.dataIndex;
             if (index === undefined) return [];
             const source = store.filter === 'all' ? store.eventsPerDay : store.filteredEventsPerDay;
-            return source[index]?.events.map((e) => `  ${e.time}  ${e.title}`) ?? [];
+            const day = source[index];
+            if (!day) return [];
+
+            if (day.count === 0) {
+              let start = index;
+              let end = index;
+              while (start > 0 && (source[start - 1]?.count ?? 1) === 0) start--;
+              while (end < source.length - 1 && (source[end + 1]?.count ?? 1) === 0) end++;
+              const gapDays = end - start + 1;
+              const fmt = (iso: string) => { const [, m, d] = iso.split('-'); return `${d}.${m}.`; };
+              const lines = [`🕳️ ${gapDays} Tag${gapDays === 1 ? '' : 'e'} ohne Ereignisse`];
+              if (gapDays > 1) lines.push(`   ${fmt(source[start].date)} – ${fmt(source[end].date)}`);
+              return lines;
+            }
+
+            return day.events.map((e) => `  ${e.time}  ${e.title}`);
           },
         },
       },
@@ -203,12 +227,12 @@ export function useChartData() {
         stacked: store.filter === 'all',
         title: { display: true, text: 'Datum' },
         ticks: {
-          maxTicksLimit: 14,
+          maxTicksLimit: store.eventsPerDay.length <= 31 ? store.eventsPerDay.length : 14,
           callback(this: { getLabelForValue(v: number): string }, val: number | string): string {
             const label = typeof val === 'string' ? val : this.getLabelForValue(val);
             if (!label) return '';
             const [y, m, d] = label.split('-');
-            return `${d}.${m}.${y}`;
+            return store.eventsPerDay.length <= 31 ? `${d}.${m}.` : `${d}.${m}.${y}`;
           },
         },
       },

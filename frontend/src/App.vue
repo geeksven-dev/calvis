@@ -9,6 +9,7 @@ import VideosBlock from './components/VideosBlock.vue';
 import SchubDialog from './components/SchubDialog.vue';
 import LoginDialog from './components/LoginDialog.vue';
 import SymptomatikBlock from './components/SymptomatikBlock.vue';
+import FoodDiaryBlock from './components/FoodDiaryBlock.vue';
 import { useAuthStore } from './stores/authStore';
 import { useCalendarStore } from './stores/calendarStore';
 import { useUrlSync } from './composables/useUrlSync';
@@ -28,6 +29,7 @@ function onSchubSaved() {
 
 const navLinks = computed(() => [
   { id: 'symptomatik', icon: '🧠', label: 'Symptomatik' },
+  { id: 'ernaehrung',  icon: '🥗', label: 'Ernährung' },
   { id: 'chart',       icon: '📈', label: 'Verlauf' },
   { id: 'stats',       icon: '📊', label: 'Statistiken' },
   { id: 'tagesanalyse',icon: '☀️',  label: 'Tagesanalyse' },
@@ -243,6 +245,9 @@ const activeQuickDays = computed(() => {
 
       <!-- Symptomatik -->
       <SymptomatikBlock id="symptomatik" />
+
+      <!-- Ernährungstagebuch -->
+      <FoodDiaryBlock id="ernaehrung" />
 
       <!-- Videos (nur eingeloggt) -->
       <VideosBlock v-if="auth.isLoggedIn" id="videos" />

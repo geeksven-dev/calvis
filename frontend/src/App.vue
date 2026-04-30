@@ -10,6 +10,7 @@ import SchubDialog from './components/SchubDialog.vue';
 import LoginDialog from './components/LoginDialog.vue';
 import SymptomatikBlock from './components/SymptomatikBlock.vue';
 import FoodDiaryBlock from './components/FoodDiaryBlock.vue';
+import ObservationsBlock from './components/ObservationsBlock.vue';
 import { useAuthStore } from './stores/authStore';
 import { useCalendarStore } from './stores/calendarStore';
 import { useUrlSync } from './composables/useUrlSync';
@@ -28,8 +29,9 @@ function onSchubSaved() {
 }
 
 const navLinks = computed(() => [
-  { id: 'symptomatik', icon: '🧠', label: 'Symptomatik' },
-  { id: 'ernaehrung',  icon: '🥗', label: 'Ernährung' },
+  { id: 'symptomatik',   icon: '🧠', label: 'Symptomatik' },
+  { id: 'beobachtungen', icon: '🔍', label: 'Beobachtungen' },
+  { id: 'ernaehrung',    icon: '🥗', label: 'Ernährung' },
   { id: 'chart',       icon: '📈', label: 'Verlauf' },
   { id: 'stats',       icon: '📊', label: 'Statistiken' },
   { id: 'tagesanalyse',icon: '☀️',  label: 'Tagesanalyse' },
@@ -245,6 +247,9 @@ const activeQuickDays = computed(() => {
 
       <!-- Symptomatik -->
       <SymptomatikBlock id="symptomatik" />
+
+      <!-- Aktuelle Beobachtungen -->
+      <ObservationsBlock id="beobachtungen" />
 
       <!-- Ernährungstagebuch -->
       <FoodDiaryBlock id="ernaehrung" />

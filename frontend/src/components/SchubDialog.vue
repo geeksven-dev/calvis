@@ -131,7 +131,10 @@ watch(() => props.open, (val) => {
   if (val) {
     const now = new Date();
     now.setSeconds(0, 0);
-    datetime.value = now.toISOString().slice(0, 16);
+    const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    datetime.value = localISO;
     selected.value = '';
     customActive.value = false;
     customTitle.value = '';
